@@ -26,6 +26,19 @@ router.put('/:id/like', async (req, res) => {
 });
 
 
+// REPOST / UN-REPOST toggle
+router.put('/:id/repost', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+    const delta = req.body.reposted ? 1 : -1;
+    post.reposts = Math.max(0, post.reposts + delta);
+    await post.save();
+    res.json({ reposts: post.reposts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 
