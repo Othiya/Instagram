@@ -63,7 +63,22 @@ export default function PostCard({ post }) {
         >
           <HeartIcon filled={liked} />
         </button>
+        
+        {/* Repost — opens the RepostModal via onRepost prop */}
+        <button
+          className="ig-action-btn"
+          onClick={() => onRepost(post)}
+          title="Repost"
+        >
+          <RepostIcon active={post.repostCaption !== undefined} />
+        </button>
+
+        {/* Bookmark */}
+        <button className="ig-action-btn ig-bookmark" onClick={() => setSaved(s => !s)}>
+          <BookmarkIcon saved={saved} />
+        </button>
       </div>
+      
 
       {/* ── Likes count ── */}
       <div className="ig-post-likes">{likeCount.toLocaleString()} likes</div>
@@ -75,6 +90,8 @@ export default function PostCard({ post }) {
       </div>
 
       <div className="ig-post-time">2 hours ago</div>
+
+      
 
     </article>
   );
