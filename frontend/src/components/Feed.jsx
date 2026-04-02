@@ -11,6 +11,11 @@ const POSTS = [
     imageUrl: 'https://picsum.photos/seed/mountain123/600/600',
     caption: 'The mountains are calling and I must go 🏔️ #nature #adventure #explore',
     likes: 48291,
+        comments: [
+      { _id: 'c1', author: 'wanderlust', text: 'Absolutely breathtaking! 😍', time: '2h' },
+      { _id: 'c2', author: 'hikerpro', text: 'Which mountain range is this?', time: '1h' },
+    ],
+
   },
   {
     _id: 'post-2',
@@ -18,6 +23,10 @@ const POSTS = [
     imageUrl: 'https://picsum.photos/seed/brunch456/600/600',
     caption: 'Sunday brunch hits different 🍳☕ #foodie #brunch #weekend',
     likes: 7843,
+        comments: [
+      { _id: 'c3', author: 'cheflena', text: 'That looks SO good omg 🤤', time: '45m' },
+    ],
+
   },
   {
     _id: 'post-3',
@@ -25,6 +34,12 @@ const POSTS = [
     imageUrl: 'https://picsum.photos/seed/city789/600/600',
     caption: 'Golden hour in the city ✨ #urban #photography #goldenhour',
     likes: 12950,
+        comments: [
+      { _id: 'c4', author: 'urbanclick', text: 'The lighting is perfect!', time: '3h' },
+      { _id: 'c5', author: 'photogeek', text: 'What camera did you use?', time: '2h' },
+      { _id: 'c6', author: 'citylover', text: 'Beautiful shot 📸', time: '1h' },
+    ],
+
   },
 ];
  
