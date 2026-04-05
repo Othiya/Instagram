@@ -7,7 +7,18 @@ const Post = require('./models/Post');
 const Comment = require('./models/Comment');
 
 const posts = [
-  { author: 'natgeo', imageUrl: 'https://picsum.photos/seed/mountain123/600/600', caption: 'The mountains are calling and I must go 🏔️ #nature #adventure #explore', likes: 48291, reposts: 312 },
+  {
+    author: 'natgeo',
+    imageUrl: 'https://picsum.photos/seed/mountain123/600/600',
+    images: [
+      'https://picsum.photos/seed/mountain123/600/600',
+      'https://picsum.photos/seed/mountain123-b/600/600',
+      'https://picsum.photos/seed/mountain123-c/600/600'
+    ],
+    caption: 'The mountains are calling and I must go 🏔️ #nature #adventure #explore',
+    likes: 48291,
+    reposts: 312
+  },
   { author: 'foodie.world', imageUrl: 'https://picsum.photos/seed/brunch456/600/600', caption: 'Sunday brunch hits different 🍳☕ #foodie #brunch #weekend', likes: 7843, reposts: 54 },
   { author: 'cityscapes', imageUrl: 'https://picsum.photos/seed/city789/600/600', caption: 'Golden hour in the city ✨ #urban #photography #goldenhour', likes: 12950, reposts: 98 },
   { author: 'ocean.vibes', imageUrl: 'https://picsum.photos/seed/ocean001/600/600', caption: 'Just me, the waves, and endless blue 🌊 #ocean #travel #peace', likes: 31200, reposts: 220 },
@@ -129,7 +140,6 @@ mongoose.connect(process.env.MONGO_URI).then(async () => {
   console.error('❌ Seed failed:', err.message);
   process.exit(1);
 });
-
 
 
 

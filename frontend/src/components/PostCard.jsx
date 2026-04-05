@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import CommentsPanel from './CommentsPanel';
 import RepostModal from './RepostModal';
 import api from '../api/axios';
@@ -50,6 +50,8 @@ const timeAgo = (dateStr) => {
 };
 
 export default function PostCard({ post, onRepost, onLike }) {
+  const images = post.images?.length ? post.images : [post.imageUrl];
+  const [activeImage, setActiveImage] = useState(0);
   const [liked,       setLiked]      = useState(false);
   const [likeCount,   setLikeCount]  = useState(post.likes || 0);
   const [saved,       setSaved]      = useState(false);
@@ -67,6 +69,10 @@ export default function PostCard({ post, onRepost, onLike }) {
   // ── Lifted comment + reply state ──────────────────────────────────────
   const [comments,   setComments]   = useState(post.comments || []);
   const [repliesMap, setRepliesMap] = useState({});
+
+  useEffect(() => {
+    setActiveImage(0);
+  }, [post._id]);
 
   const handleAddComment = useCallback((comment, fromServer = false) => {
     setComments(prev => {
@@ -138,6 +144,15 @@ export default function PostCard({ post, onRepost, onLike }) {
     setShowCaptionModal(false);
   };
 
+  const showCarouselControls = images.length > 1;
+  const currentImage = images[activeImage] || post.imageUrl;
+  const goToPrevImage = () => {
+    setActiveImage(index => (index - 1 + images.length) % images.length);
+  };
+  const goToNextImage = () => {
+    setActiveImage(index => (index + 1) % images.length);
+  };
+
   return (
     <>
       <article className="ig-post">
@@ -155,8 +170,43 @@ export default function PostCard({ post, onRepost, onLike }) {
 
         {/* Image */}
         <div className="ig-post-image-wrap">
-          <img className="ig-post-image" src={post.imageUrl} alt="post"
+          <img className="ig-post-image" src={currentImage} alt="post"
             onDoubleClick={() => doLike(true)}/>
+
+          {showCarouselControls && (
+            <>
+              <div className="ig-post-carousel-badge">
+                {activeImage + 1}/{images.length}
+              </div>
+              <button
+                type="button"
+                className="ig-post-carousel-btn ig-post-carousel-btn-left"
+                onClick={goToPrevImage}
+                aria-label="Previous image"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="ig-post-carousel-btn ig-post-carousel-btn-right"
+                onClick={goToNextImage}
+                aria-label="Next image"
+              >
+                ›
+              </button>
+              <div className="ig-post-carousel-dots">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className={`ig-post-carousel-dot${index === activeImage ? ' active' : ''}`}
+                    onClick={() => setActiveImage(index)}
+                    aria-label={`Go to image ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
 
           {/* Repost overlay — shown immediately after reposting */}
           {isReposted && (

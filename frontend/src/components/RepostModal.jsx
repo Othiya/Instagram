@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 export default function RepostModal({ post, existingCaption, onConfirm, onDelete, onCancel }) {
   const [caption, setCaption] = useState(existingCaption || '');
+  const previewImage = post.images?.[0] || post.imageUrl;
 
   return (
     <div className="ig-modal-overlay" onClick={e => e.target === e.currentTarget && onCancel()}>
@@ -14,7 +15,7 @@ export default function RepostModal({ post, existingCaption, onConfirm, onDelete
 
         {/* Post preview */}
         <div className="ig-repost-preview">
-          <img src={post.imageUrl} alt="preview" className="ig-repost-preview-img"/>
+          <img src={previewImage} alt="preview" className="ig-repost-preview-img"/>
           <div className="ig-repost-preview-meta">
             <span className="ig-repost-preview-author">@{post.author}</span>
             <span className="ig-repost-preview-caption">{post.caption}</span>

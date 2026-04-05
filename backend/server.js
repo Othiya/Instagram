@@ -4,6 +4,8 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+
 app.use(cors({ 
   origin: [
     'http://localhost:5173',
@@ -28,4 +30,4 @@ mongoose.connection.on('reconnected', () => console.log('🔄 MongoDB reconnecte
 app.use('/api/posts', require('./routes/posts'));
 app.use('/api/comments', require('./routes/comments'));   // ← ADD THIS
 
-app.listen(5000, () => console.log('Server running on port 5000'));  // ← 5001 → 5000
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
