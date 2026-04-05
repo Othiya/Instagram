@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
-
-const bannedWords = ['hate', 'kill', 'slur1', 'slur2'];
+const MY_AVATAR = 'https://i.pravatar.cc/32?img=1';
 
 // ── Single reply row ──────────────────────────────────────────────────────────
 function ReplyRow({ reply, myAvatar }) {
@@ -127,42 +126,26 @@ export default function CommentsPanel({
   const handleSubmit = async () => {
     const text = inputText.trim();
     if (!text) return;
-    if (bannedWords.some(w => text.toLowerCase().includes(w))) {
-      setWarning('⚠️ Comment contains inappropriate language.'); return;
-    }
     setWarning('');
 
     if (replyingTo) {
-      const optimistic = {
-        _id: `local-${Date.now()}`,
-        author: 'you',
-        text,
-      };
-      // Add optimistically right away
-      onAddReply(replyingTo._id, [optimistic]);
-      setReplyingTo(null);
-      setInputText('');
       try {
+        const replyTarget = replyingTo;
         const res = await api.post(`/comments/${post._id}`, {
-          author: 'you', text, parentCommentId: replyingTo._id,
+          author: 'you', text, parentCommentId: replyTarget._id,
         });
-        // Replace optimistic with server response
-        onAddReply(replyingTo._id, [res.data], false, optimistic._id);
+        onAddReply(replyTarget._id, [res.data]);
+        setReplyingTo(null);
+        setInputText('');
       } catch (err) {
         if (err.response?.data?.warning) setWarning(err.response.data.message);
       }
     } else {
-      const optimistic = {
-        _id: `local-${Date.now()}`,
-        author: 'you',
-        text,
-        time: 'now',
-      };
-      onAddComment(optimistic);
-      setInputText('');
-      setTimeout(() => listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' }), 80);
       try {
-        await api.post(`/comments/${post._id}`, { author: 'you', text });
+        const res = await api.post(`/comments/${post._id}`, { author: 'you', text });
+        onAddComment(res.data);
+        setInputText('');
+        setTimeout(() => listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' }), 80);
       } catch (err) {
         if (err.response?.data?.warning) setWarning(err.response.data.message);
       }

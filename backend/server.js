@@ -18,9 +18,9 @@ mongoose.connect(process.env.MONGO_URI, {
   serverSelectionTimeoutMS: 10000,
   socketTimeoutMS: 45000,
 })
-  .then(() => console.log('🔥 MongoDB Connected Successfully!'))
+  .then(() => console.log('MongoDB Connected Successfully!'))
   .catch(err => {
-    console.error('❌ MongoDB Connection Error:', err.message);
+    console.error('MongoDB Connection Error:', err.message);
     process.exit(1);
   });
 
@@ -28,7 +28,7 @@ mongoose.connection.on('disconnected', () => console.warn('⚠️  MongoDB disco
 mongoose.connection.on('reconnected', () => console.log('🔄 MongoDB reconnected'));
 
 app.use('/api/posts', require('./routes/posts'));
-app.use('/api/comments', require('./routes/comments'));   // ← ADD THIS
+app.use('/api/comments', require('./routes/comments')); 
 app.use('/api/users', require('./routes/users'));
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
