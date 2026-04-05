@@ -3,11 +3,11 @@ const User = require('../models/User');
 
 // Demo identity
 const DEMO_USER = {
-  username: '_mld_',
-  email: 'mld.demo@example.com',
-  fullName: '_mld_',
+  username: '_sleepy_123',
+  email: 'sleepy123.demo@example.com',
+  fullName: '_sleepy_123',
   bio: 'Local demo account',
-  avatarUrl: 'https://i.pravatar.cc/300?u=_mld_',
+  avatarUrl: 'https://i.pravatar.cc/300?u=_sleepy_123',
   location: 'Dhaka, Bangladesh',
   website: '',
   followersCount: 128,
@@ -21,8 +21,10 @@ async function ensureDemoUser() {
   let user = await User.findOne({
     $or: [
       { username: DEMO_USER.username },
+      { username: '_mld_' },
       { username: 'you.demo' },
       { email: DEMO_USER.email },
+      { email: 'mld.demo@example.com' },
       { email: 'you.demo@example.com' }
     ]
   });

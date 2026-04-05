@@ -113,8 +113,8 @@ export default function CommentsPanel({
   const inputRef  = useRef(null);
   const listRef   = useRef(null);
   // Viewer avatar
-  const currentUsername = currentUser?.username || '_mld_';
-  const myAvatar = currentUser?.avatarUrl || 'https://i.pravatar.cc/32?u=_mld_';
+  const currentUsername = currentUser?.username || '_sleepy_123';
+  const myAvatar = currentUser?.avatarUrl || 'https://i.pravatar.cc/32?u=_sleepy_123';
 
   // Fetch comments from server on first open
   useEffect(() => {

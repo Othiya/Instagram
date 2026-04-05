@@ -5,6 +5,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const Post = require('./models/Post');
 const Comment = require('./models/Comment');
+const { assignUsersToPostLikes } = require('./scripts/assignUsersToPostLikes');
 
 const posts = [
   {
@@ -135,12 +136,21 @@ mongoose.connect(process.env.MONGO_URI).then(async () => {
     totalComments += comments.length;
   }
   console.log(`✅ Seeded ${totalComments} comments`);
+
+  const likeResult = await assignUsersToPostLikes({
+    posts: savedPosts,
+    minLikes: 30,
+    maxLikes: 40,
+    targetUsers: 250,
+    connect: false
+  });
+  console.log(`✅ Assigned ${likeResult.likesAssigned} likes across ${likeResult.postsCount} posts`);
+
   mongoose.disconnect();
 }).catch(err => {
   console.error('❌ Seed failed:', err.message);
   process.exit(1);
 });
-
 
 
 

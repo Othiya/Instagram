@@ -51,7 +51,7 @@ const timeAgo = (dateStr) => {
 export default function PostCard({ post, currentUser, onRepost, onLike }) {
   // Viewer avatar
   const images = post.images?.length ? post.images : [post.imageUrl];
-  const myAvatar = currentUser?.avatarUrl || 'https://i.pravatar.cc/32?u=_mld_';
+  const myAvatar = currentUser?.avatarUrl || 'https://i.pravatar.cc/32?u=_sleepy_123';
   const [activeImage, setActiveImage] = useState(0);
   const [liked,       setLiked]      = useState(Boolean(post.viewerHasLiked));
   const [likeCount,   setLikeCount]  = useState(post.likes || 0);
@@ -330,6 +330,7 @@ export default function PostCard({ post, currentUser, onRepost, onLike }) {
         <LikesModal
           postId={post._id}
           initialCount={likeCount}
+          currentUser={currentUser}
           onClose={() => setShowLikes(false)}
         />
       )}

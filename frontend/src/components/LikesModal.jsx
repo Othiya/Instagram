@@ -1,11 +1,21 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 
-export default function LikesModal({ postId, initialCount, onClose }) {
+function getFollowStorageKey(currentUser) {
+  return `ig-following:${currentUser?._id || currentUser?.username || 'guest'}`;
+}
+
+export default function LikesModal({ postId, initialCount, currentUser, onClose }) {
   const [users, setUsers] = useState([]);
   const [count, setCount] = useState(initialCount || 0);
+  const [followedUsers, setFollowedUsers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(getFollowStorageKey(currentUser));
+    setFollowedUsers(saved ? JSON.parse(saved) : {});
+  }, [currentUser]);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,6 +44,17 @@ export default function LikesModal({ postId, initialCount, onClose }) {
       cancelled = true;
     };
   }, [postId]);
+
+  const toggleFollow = (user) => {
+    setFollowedUsers(prev => {
+      const next = {
+        ...prev,
+        [user._id]: !prev[user._id]
+      };
+      localStorage.setItem(getFollowStorageKey(currentUser), JSON.stringify(next));
+      return next;
+    });
+  };
 
   return (
     <div className="ig-modal-overlay" onClick={onClose}>
@@ -72,6 +93,15 @@ export default function LikesModal({ postId, initialCount, onClose }) {
                   </div>
                   <div className="ig-likes-name">{user.fullName}</div>
                 </div>
+                {currentUser && user._id !== currentUser._id && (
+                  <button
+                    type="button"
+                    className={`ig-likes-follow-btn${followedUsers[user._id] ? ' following' : ''}`}
+                    onClick={() => toggleFollow(user)}
+                  >
+                    {followedUsers[user._id] ? 'Following' : 'Follow'}
+                  </button>
+                )}
               </div>
             ))}
           </div>

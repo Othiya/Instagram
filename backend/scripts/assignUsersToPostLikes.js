@@ -32,21 +32,24 @@ function pickRandomUsers(users, count) {
   return pool.slice(0, count);
 }
 
-async function main() {
+async function assignUsersToPostLikes({
+  posts = null,
+  minLikes = 30,
+  maxLikes = 40,
+  targetUsers = 250,
+  connect = true
+} = {}) {
   if (!process.env.MONGO_URI) {
     throw new Error('MONGO_URI is missing. Set it in the environment or backend/.env.');
   }
-
-  const args = process.argv.slice(2);
-  const minLikes = parseNumberFlag(args, '--min', 30);
-  const maxLikes = parseNumberFlag(args, '--max', 40);
-  const targetUsers = parseNumberFlag(args, '--users', 250);
 
   if (minLikes > maxLikes) {
     throw new Error('--min cannot be greater than --max.');
   }
 
-  await mongoose.connect(process.env.MONGO_URI);
+  if (connect) {
+    await mongoose.connect(process.env.MONGO_URI);
+  }
 
   let users = await User.find().select('_id');
   if (users.length < targetUsers) {
@@ -60,17 +63,17 @@ async function main() {
     throw new Error(`Need at least ${maxLikes} users to assign likes per post.`);
   }
 
-  const posts = await Post.find().select('_id author likes');
-  if (posts.length === 0) {
+  const targetPosts = posts || await Post.find().select('_id author likes');
+  if (targetPosts.length === 0) {
     throw new Error('No posts found. Seed posts first.');
   }
 
-  await Like.deleteMany({ postId: { $in: posts.map(post => post._id) } });
+  await Like.deleteMany({ postId: { $in: targetPosts.map(post => post._id) } });
 
   const likeDocuments = [];
   const postUpdates = [];
 
-  for (const post of posts) {
+  for (const post of targetPosts) {
     const likeCount = randomInt(minLikes, maxLikes);
     const selectedUsers = pickRandomUsers(users, likeCount);
 
@@ -92,14 +95,36 @@ async function main() {
   await Like.insertMany(likeDocuments);
   await Post.bulkWrite(postUpdates);
 
-  console.log(`Assigned ${likeDocuments.length} likes across ${posts.length} posts`);
+  return {
+    usersCount: users.length,
+    likesAssigned: likeDocuments.length,
+    postsCount: targetPosts.length
+  };
 }
 
-main()
-  .catch(error => {
-    console.error('Assign likes failed:', error.message);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await mongoose.disconnect().catch(() => {});
+async function main() {
+  const args = process.argv.slice(2);
+  const result = await assignUsersToPostLikes({
+    minLikes: parseNumberFlag(args, '--min', 30),
+    maxLikes: parseNumberFlag(args, '--max', 40),
+    targetUsers: parseNumberFlag(args, '--users', 250),
+    connect: true
   });
+
+  console.log(`Assigned ${result.likesAssigned} likes across ${result.postsCount} posts`);
+}
+
+if (require.main === module) {
+  main()
+    .catch(error => {
+      console.error('Assign likes failed:', error.message);
+      process.exitCode = 1;
+    })
+    .finally(async () => {
+      await mongoose.disconnect().catch(() => {});
+    });
+}
+
+module.exports = {
+  assignUsersToPostLikes
+};
