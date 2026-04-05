@@ -119,38 +119,51 @@ const commentData = {
   ],
 };
 
-mongoose.connect(process.env.MONGO_URI).then(async () => {
-  await Post.deleteMany({});
-  await Comment.deleteMany({});
+async function seedDatabase() {
+  try {
+    await Post.deleteMany({});
+    await Comment.deleteMany({});
 
-  const savedPosts = await Post.insertMany(posts);
-  console.log(`✅ Seeded ${savedPosts.length} posts`);
+    const savedPosts = await Post.insertMany(posts);
+    console.log(`✅ Seeded ${savedPosts.length} posts`);
 
-  let totalComments = 0;
-  for (const post of savedPosts) {
-    const comments = commentData[post.author] || [];
-    if (comments.length === 0) continue;
-    await Comment.insertMany(
-      comments.map(c => ({ postId: post._id, author: c.author, text: c.text, parentCommentId: null }))
-    );
-    totalComments += comments.length;
+    let totalComments = 0;
+    for (const post of savedPosts) {
+      const comments = commentData[post.author] || [];
+      if (comments.length === 0) continue;
+      await Comment.insertMany(
+        comments.map(c => ({ postId: post._id, author: c.author, text: c.text, parentCommentId: null }))
+      );
+      totalComments += comments.length;
+    }
+    console.log(`✅ Seeded ${totalComments} comments`);
+
+    const likeResult = await assignUsersToPostLikes({
+      posts: savedPosts,
+      minLikes: 30,
+      maxLikes: 40,
+      targetUsers: 250,
+      connect: false
+    });
+    console.log(`✅ Assigned ${likeResult.likesAssigned} likes across ${likeResult.postsCount} posts`);
+  } catch (err) {
+    console.error('❌ Seed failed:', err.message);
+    throw err;
   }
-  console.log(`✅ Seeded ${totalComments} comments`);
+}
 
-  const likeResult = await assignUsersToPostLikes({
-    posts: savedPosts,
-    minLikes: 30,
-    maxLikes: 40,
-    targetUsers: 250,
-    connect: false
+// Run seed if this file is executed directly
+if (require.main === module) {
+  mongoose.connect(process.env.MONGO_URI).then(async () => {
+    await seedDatabase();
+    mongoose.disconnect();
+  }).catch(err => {
+    console.error('❌ Seed failed:', err.message);
+    process.exit(1);
   });
-  console.log(`✅ Assigned ${likeResult.likesAssigned} likes across ${likeResult.postsCount} posts`);
+}
 
-  mongoose.disconnect();
-}).catch(err => {
-  console.error('❌ Seed failed:', err.message);
-  process.exit(1);
-});
+module.exports = { seedDatabase };
 
 
 
