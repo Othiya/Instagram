@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import CommentsPanel from './CommentsPanel';
+import RepostModal from './RepostModal';
 import api from '../api/axios';
 
 const MY_AVATAR = 'https://i.pravatar.cc/32?img=1';
@@ -22,7 +23,7 @@ const CommentBubbleIcon = () => (
 
 const RepostIcon = ({ active }) => (
   <svg fill="none" height="22" viewBox="0 0 24 24" width="22"
-    stroke={active ? '#00b300' : 'currentColor'} strokeWidth="2"
+    stroke={active ? '#a855f7' : 'currentColor'} strokeWidth="2"
     strokeLinecap="round" strokeLinejoin="round">
     <polyline points="17 1 21 5 17 9"/>
     <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
@@ -49,21 +50,27 @@ const timeAgo = (dateStr) => {
 };
 
 export default function PostCard({ post, onRepost, onLike }) {
-  const [liked,      setLiked]      = useState(false);
-  const [likeCount,  setLikeCount]  = useState(post.likes || 0);
-  const [saved,      setSaved]      = useState(false);
-  const [heartAnim,  setHeartAnim]  = useState(false);
-  const [showPanel,  setShowPanel]  = useState(false);
+  const [liked,       setLiked]      = useState(false);
+  const [likeCount,   setLikeCount]  = useState(post.likes || 0);
+  const [saved,       setSaved]      = useState(false);
+  const [heartAnim,   setHeartAnim]  = useState(false);
+  const [showPanel,   setShowPanel]  = useState(false);
 
-  // ── Lifted comment + reply state (persists across panel open/close) ──
+  // ── Repost state ──────────────────────────────────────────────────────
+  // repostCaption: undefined = not reposted, string (even '') = reposted
+  const [repostCaption, setRepostCaption] = useState(
+    post.repostCaption !== undefined ? post.repostCaption : undefined
+  );
+  const isReposted = repostCaption !== undefined;
+  const [showCaptionModal, setShowCaptionModal] = useState(false);
+
+  // ── Lifted comment + reply state ──────────────────────────────────────
   const [comments,   setComments]   = useState(post.comments || []);
-  // repliesMap: { [commentId]: Reply[] }
   const [repliesMap, setRepliesMap] = useState({});
 
   const handleAddComment = useCallback((comment, fromServer = false) => {
     setComments(prev => {
       if (fromServer) {
-        // avoid duplicates when server returns comments we already have locally
         const ids = new Set(prev.map(c => c._id));
         return ids.has(comment._id) ? prev : [...prev, comment];
       }
@@ -71,22 +78,18 @@ export default function PostCard({ post, onRepost, onLike }) {
     });
   }, []);
 
-  // onAddReply(commentId, newReplies, replace?, replaceId?)
   const handleAddReply = useCallback((commentId, newReplies, replace = false, replaceId = null) => {
     setRepliesMap(prev => {
       const existing = prev[commentId] || [];
       let updated;
       if (replace) {
-        // server fetch: merge server list with any local-only entries
         const serverIds = new Set(newReplies.map(r => r._id));
         const localOnly = existing.filter(r => !serverIds.has(r._id) && !r._id.startsWith('local-'));
         updated = [...newReplies, ...localOnly];
       } else if (replaceId) {
-        // swap optimistic reply with confirmed server reply
         const confirmed = newReplies[0];
         updated = existing.map(r => r._id === replaceId ? confirmed : r);
       } else {
-        // append (optimistic add)
         const ids = new Set(existing.map(r => r._id));
         const toAdd = newReplies.filter(r => !ids.has(r._id));
         updated = [...existing, ...toAdd];
@@ -104,6 +107,37 @@ export default function PostCard({ post, onRepost, onLike }) {
     if (onLike) onLike(post._id, nowLiked);
   };
 
+  // ── Repost handlers ───────────────────────────────────────────────────
+  const handleRepostClick = async () => {
+    if (isReposted) {
+      // already reposted — clicking icon again opens the caption modal
+      setShowCaptionModal(true);
+      return;
+    }
+    // First time — immediately mark as reposted (no modal yet)
+    setRepostCaption('');
+    try {
+      await api.put(`/posts/${post._id}/repost`, { reposted: true });
+    } catch (err) {
+      console.error('Repost failed:', err);
+    }
+  };
+
+  const handleTagFriendClick = () => {
+    // "Tag a friend…" bar clicked — open caption modal
+    setShowCaptionModal(true);
+  };
+
+  const handleCaptionConfirm = (caption) => {
+    setRepostCaption(caption);
+    setShowCaptionModal(false);
+  };
+
+  const handleDelete = () => {
+    setRepostCaption(undefined);
+    setShowCaptionModal(false);
+  };
+
   return (
     <>
       <article className="ig-post">
@@ -114,7 +148,7 @@ export default function PostCard({ post, onRepost, onLike }) {
           </div>
           <div className="ig-post-header-meta">
             <span className="ig-post-username">{post.author}</span>
-            <span className="ig-post-subt">{timeAgo(post.createdAt)}</span>
+            <span className="ig-post-subt">New York, USA</span>
           </div>
           <button className="ig-post-more">•••</button>
         </div>
@@ -123,18 +157,27 @@ export default function PostCard({ post, onRepost, onLike }) {
         <div className="ig-post-image-wrap">
           <img className="ig-post-image" src={post.imageUrl} alt="post"
             onDoubleClick={() => doLike(true)}/>
-          {post.repostCaption !== undefined && (
-            <div className="ig-repost-overlay">
-              <div className="ig-repost-overlay-avatar-wrap">
-                <img src={MY_AVATAR} alt="you" className="ig-repost-overlay-avatar"/>
-                <div className="ig-repost-overlay-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"
-                    strokeLinecap="round" strokeLinejoin="round" width="11" height="11">
-                    <polyline points="17 1 21 5 17 9"/>
-                    <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                    <polyline points="7 23 3 19 7 15"/>
-                    <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-                  </svg>
+
+          {/* Repost overlay — shown immediately after reposting */}
+          {isReposted && (
+            <div className="ig-repost-overlay" onClick={handleTagFriendClick}>
+              {/* "Tag a friend…" or caption — above the avatar pill */}
+              <span className="ig-repost-overlay-caption">
+                {repostCaption ? repostCaption : 'Tag a friend…'}
+              </span>
+              {/* Avatar + repost badge pill */}
+              <div className="ig-repost-overlay-avatar-pill">
+                <div className="ig-repost-overlay-avatar-wrap">
+                  <img src={MY_AVATAR} alt="you" className="ig-repost-overlay-avatar"/>
+                  <div className="ig-repost-overlay-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"
+                      strokeLinecap="round" strokeLinejoin="round" width="11" height="11">
+                      <polyline points="17 1 21 5 17 9"/>
+                      <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                      <polyline points="7 23 3 19 7 15"/>
+                      <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
@@ -149,8 +192,8 @@ export default function PostCard({ post, onRepost, onLike }) {
           <button className="ig-action-btn" onClick={() => setShowPanel(true)}>
             <CommentBubbleIcon/>
           </button>
-          <button className="ig-action-btn" onClick={() => onRepost(post)} title="Repost">
-            <RepostIcon active={post.repostCaption !== undefined}/>
+          <button className="ig-action-btn" onClick={handleRepostClick} title="Repost">
+            <RepostIcon active={isReposted}/>
           </button>
           <button className="ig-action-btn ig-bookmark" onClick={() => setSaved(s => !s)}>
             <BookmarkIcon saved={saved}/>
@@ -171,7 +214,7 @@ export default function PostCard({ post, onRepost, onLike }) {
 
         <div className="ig-post-time">{timeAgo(post.createdAt)}</div>
 
-        {/* Inline bar — opens panel */}
+        {/* Inline comment bar — opens CommentsPanel */}
         <div className="ig-add-comment-bar" onClick={() => setShowPanel(true)} style={{ cursor: 'pointer' }}>
           <div className="ig-comment-bar-avatar">
             <img src={MY_AVATAR} alt="you"/>
@@ -182,6 +225,7 @@ export default function PostCard({ post, onRepost, onLike }) {
         </div>
       </article>
 
+      {/* Comments panel */}
       {showPanel && (
         <CommentsPanel
           post={post}
@@ -190,6 +234,17 @@ export default function PostCard({ post, onRepost, onLike }) {
           onAddComment={handleAddComment}
           onAddReply={handleAddReply}
           onClose={() => setShowPanel(false)}
+        />
+      )}
+
+      {/* Caption modal — only opens when "Tag a friend…" is clicked */}
+      {showCaptionModal && (
+        <RepostModal
+          post={post}
+          existingCaption={repostCaption || ''}
+          onConfirm={handleCaptionConfirm}
+          onDelete={handleDelete}
+          onCancel={() => setShowCaptionModal(false)}
         />
       )}
     </>

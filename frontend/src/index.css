@@ -169,17 +169,35 @@ body {
 .ig-post-image { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
 
 /* Repost overlay */
-.ig-repost-overlay { position: absolute; bottom: 10px; left: 10px; }
-.ig-repost-overlay-avatar-wrap { position: relative; width: 36px; height: 36px; }
+/* Repost overlay on image — avatar + caption text beside it */
+.ig-repost-overlay {
+  position: absolute; bottom: 10px; left: 10px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  max-width: 82%; cursor: pointer;
+}
+
+.ig-repost-overlay-avatar-wrap { position: relative; width: 28px; height: 28px; flex-shrink: 0; }
 .ig-repost-overlay-avatar {
-  width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
-  border: 2px solid #fff; display: block;
+  width: 28px; height: 28px; border-radius: 50%; object-fit: cover;
+  border: 1.5px solid #fff; display: block;
 }
 .ig-repost-overlay-icon {
-  position: absolute; bottom: -2px; right: -6px;
-  width: 18px; height: 18px; background: #7c3aed;
+  position: absolute; bottom: -2px; right: -4px;
+  width: 14px; height: 14px; background: #a855f7;
   border-radius: 50%; border: 1.5px solid #fff;
   display: flex; align-items: center; justify-content: center;
+}
+.ig-repost-overlay-caption {
+  font-size: 12px; color: #fff; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 200px;
+  background: rgba(0,0,0,0.55); border-radius: 12px;
+  padding: 3px 10px;
+}
+.ig-repost-overlay-avatar-pill {
+  display: flex; align-items: center; gap: 0;
+  background: rgba(0,0,0,0.50); border-radius: 20px;
+  padding: 4px 10px 4px 4px;
 }
 
 /* Actions */
@@ -262,61 +280,185 @@ body {
 /* ── Repost modal ──────────────────────────────────────────────── */
 .ig-modal-overlay {
   position: fixed; inset: 0; background: var(--overlay);
-  display: flex; align-items: flex-end; z-index: 200;
-  animation: igFadeIn 0.2s ease;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; animation: igFadeIn 0.2s ease;
 }
 @keyframes igFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .ig-repost-sheet {
-  width: 100%; background: var(--sheet-bg);
-  border-radius: 24px 24px 0 0; padding: 20px 20px 36px;
-  animation: igSlideUp 0.28s cubic-bezier(0.34,1.56,0.64,1);
-  transition: background 0.2s;
+  background: var(--surface); border-radius: 16px;
+  padding: 20px 20px 24px; width: min(320px, 90vw);
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  position: relative;
+  animation: igPopIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
 }
-@keyframes igSlideUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
+@keyframes igPopIn {
+  from { transform: scale(0.88); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
 }
-.ig-sheet-handle {
-  width: 36px; height: 4px; background: var(--border);
-  border-radius: 2px; margin: 0 auto 16px;
+
+/* ── close ✕ top-left ── */
+.ig-rs-close {
+  position: absolute; top: 12px; left: 14px;
+  background: none; border: none; font-size: 18px;
+  color: var(--text-muted); cursor: pointer; line-height: 1; padding: 4px;
 }
+.ig-rs-close:hover { color: var(--text); }
+
+/* ── shared avatar + badge ── */
+.ig-rs-avatar-wrap { position: relative; width: 76px; height: 76px; }
+.ig-rs-avatar {
+  width: 76px; height: 76px; border-radius: 50%; object-fit: cover;
+  border: 2px solid var(--border);
+}
+.ig-rs-icon-badge {
+  position: absolute; bottom: -3px; right: -3px;
+  background: #a855f7; border-radius: 50%;
+  width: 26px; height: 26px; border: 2px solid var(--surface);
+  display: flex; align-items: center; justify-content: center; color: #fff;
+}
+
+/* ── Step 1: confirm ── */
+.ig-rs-preview-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  margin-top: 8px;
+}
+.ig-rs-thumb {
+  width: 90px; height: 90px; border-radius: 10px; object-fit: cover;
+  border: 1px solid var(--border);
+}
+.ig-rs-hint {
+  font-size: 15px; color: var(--text); text-align: center; margin: 0;
+}
+.ig-rs-actions-col {
+  width: 100%; display: flex; flex-direction: column; gap: 10px;
+}
+.ig-rs-btn-primary {
+  width: 100%; padding: 13px;
+  background: #3b82f6; color: #fff;
+  border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
+}
+.ig-rs-btn-primary:hover { background: #2563eb; }
+.ig-rs-btn-secondary {
+  width: 100%; padding: 12px;
+  background: none; color: var(--text-muted);
+  border: 1px solid var(--border); border-radius: 10px;
+  font-size: 15px; cursor: pointer; font-family: inherit;
+}
+.ig-rs-btn-secondary:hover { color: var(--text); }
+
+/* ── Step 2: reposted state ── */
+.ig-rs-reposted-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  margin-top: 8px;
+}
+.ig-rs-caption-preview {
+  font-size: 14px; color: var(--text); text-align: center;
+  margin: 0; font-weight: 500; max-width: 240px;
+}
+.ig-rs-reposted-label {
+  font-size: 14px; color: var(--text-muted); text-align: center; margin: 0;
+}
+.ig-rs-delete-link {
+  background: none; border: none; color: #3b82f6;
+  font-size: 14px; font-weight: 600; cursor: pointer; padding: 0;
+}
+.ig-rs-delete-link:hover { text-decoration: underline; }
+.ig-rs-btn-add {
+  width: 100%; padding: 13px;
+  background: #3b82f6; color: #fff;
+  border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
+}
+.ig-rs-btn-add:hover { background: #2563eb; }
+
+/* ── Step 3: add caption ── */
 .ig-sheet-title {
-  font-size: 16px; font-weight: 700; text-align: center;
-  margin-bottom: 16px; color: var(--text);
+  font-size: 16px; font-weight: 700; color: var(--text);
+  margin: 0; text-align: center;
 }
 .ig-repost-preview {
-  display: flex; gap: 10px; align-items: center;
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: 12px; padding: 10px; margin-bottom: 14px;
-  transition: background 0.2s, border-color 0.2s;
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: var(--surface2, #f3f3f3); border-radius: 10px; padding: 10px;
 }
 .ig-repost-preview-img { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
 .ig-repost-preview-meta { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
 .ig-repost-preview-author { font-size: 13px; font-weight: 600; color: var(--text); }
 .ig-repost-preview-caption { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ig-repost-caption-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.ig-repost-caption-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; width: 100%; }
+.ig-repost-textarea {
+  width: 100%; min-height: 80px; resize: none;
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 12px; font-size: 14px; font-family: inherit;
+  background: var(--surface); color: var(--text); outline: none;
+  box-sizing: border-box;
+}
+.ig-repost-textarea:focus { border-color: var(--blue, #3b82f6); }
+.ig-repost-textarea::placeholder { color: var(--text-muted); }
+.ig-sheet-actions {
+  display: flex; gap: 10px; width: 100%;
+}
+.ig-sheet-cancel {
+  flex: 1; padding: 12px; background: none;
+  border: 1px solid var(--border); border-radius: 10px;
+  font-size: 14px; cursor: pointer; color: var(--text-muted); font-family: inherit;
+}
+.ig-sheet-cancel:hover { color: var(--text); }
+.ig-sheet-confirm {
+  flex: 2; padding: 12px; background: #3b82f6; color: #fff;
+  border: none; border-radius: 10px;
+  font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+}
+.ig-sheet-confirm:hover { background: #2563eb; }
+
+/* old selectors kept for safety */
+.ig-repost-sheet-close { display: none; }
+.ig-repost-confirm-avatar-wrap { display: none; }
+.ig-repost-add-btn { display: none; }
+.ig-repost-delete-btn { display: none; }
+
+/* Step 2 — caption screen */
+.ig-repost-caption-header {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+}
+.ig-repost-caption-title {
+  font-size: 16px; font-weight: 700; color: var(--text);
+}
+.ig-repost-preview {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px; width: 100%;
+}
+.ig-repost-preview-img { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.ig-repost-preview-meta { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+.ig-repost-preview-author { font-size: 13px; font-weight: 600; color: var(--text); }
+.ig-repost-preview-caption { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ig-repost-textarea {
   width: 100%; border: 1.5px solid var(--border); border-radius: 12px;
-  padding: 10px 12px; font-size: 13.5px; font-family: inherit;
+  padding: 10px 12px; font-size: 14px; font-family: inherit;
   resize: none; outline: none; color: var(--text); min-height: 80px;
-  background: var(--surface); transition: border-color 0.15s, background 0.2s;
+  background: var(--surface); box-sizing: border-box;
+  transition: border-color 0.15s;
 }
-.ig-repost-textarea:focus { border-color: var(--blue); }
+.ig-repost-textarea:focus { border-color: #3b82f6; }
 .ig-repost-textarea::placeholder { color: var(--text-muted); }
-.ig-sheet-actions { display: flex; gap: 10px; margin-top: 16px; }
+.ig-repost-char-count {
+  font-size: 11px; color: var(--text-muted); align-self: flex-end; margin-top: -8px;
+}
+.ig-sheet-actions { display: flex; gap: 10px; width: 100%; margin-top: 4px; }
 .ig-sheet-cancel {
   flex: 1; padding: 12px; border: 1.5px solid var(--border);
-  border-radius: 12px; background: var(--surface);
+  border-radius: 10px; background: var(--surface);
   font-size: 14px; font-weight: 600; font-family: inherit;
-  color: var(--text); cursor: pointer; transition: background 0.2s, border-color 0.2s;
+  color: var(--text); cursor: pointer;
 }
 .ig-sheet-confirm {
-  flex: 2; padding: 12px; border: none; border-radius: 12px;
-  background: var(--blue); font-size: 14px; font-weight: 700;
-  font-family: inherit; color: #fff; cursor: pointer; transition: background 0.15s;
+  flex: 2; padding: 12px; border: none; border-radius: 10px;
+  background: #3b82f6; font-size: 14px; font-weight: 700;
+  font-family: inherit; color: #fff; cursor: pointer;
 }
-.ig-sheet-confirm:hover { background: var(--blue-hover); }
+.ig-sheet-confirm:hover { background: #2563eb; }
 
 /* Repost toast */
 .ig-repost-toast {
