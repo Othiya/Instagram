@@ -3,6 +3,7 @@ import CommentsPanel from './CommentsPanel';
 import LikesModal from './LikesModal';
 import RepostModal from './RepostModal';
 import api from '../api/axios';
+import { CAT_AVATAR_URL } from '../constants/catAvatar';
 
 const HeartIcon = ({ filled }) => filled ? (
   <svg fill="#ed4956" height="24" viewBox="0 0 48 48" width="24">
@@ -51,7 +52,7 @@ const timeAgo = (dateStr) => {
 export default function PostCard({ post, currentUser, onRepost, onLike }) {
   // Viewer avatar
   const images = post.images?.length ? post.images : [post.imageUrl];
-  const myAvatar = currentUser?.avatarUrl || 'https://i.pravatar.cc/32?u=_sleepy_123';
+  const myAvatar = CAT_AVATAR_URL;
   const [activeImage, setActiveImage] = useState(0);
   const [liked,       setLiked]      = useState(Boolean(post.viewerHasLiked));
   const [likeCount,   setLikeCount]  = useState(post.likes || 0);

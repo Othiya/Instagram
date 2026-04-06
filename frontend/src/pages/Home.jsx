@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import Feed from '../components/Feed';
+import { CAT_AVATAR_URL } from '../constants/catAvatar';
 
 const STORIES = [
   { user: 'your_story', you: true },
@@ -82,7 +83,7 @@ export default function Home() {
                     <img
                       // Story avatar
                       src={s.you
-                        ? (currentUser?.avatarUrl || 'https://i.pravatar.cc/56?u=_sleepy_123')
+                        ? CAT_AVATAR_URL
                         : `https://i.pravatar.cc/56?u=${s.user}`}
                       alt={s.user}
                     />

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
+import { CAT_AVATAR_URL } from '../constants/catAvatar';
 
 const HeartIcon = ({ filled }) => filled ? (
   <svg fill="#ed4956" height="18" viewBox="0 0 48 48" width="18">
@@ -200,8 +201,8 @@ export default function CommentsPanel({
   const inputRef  = useRef(null);
   const listRef   = useRef(null);
   // Viewer avatar
-  const currentUsername = currentUser?.username || '_sleepy_123';
-  const myAvatar = currentUser?.avatarUrl || 'https://i.pravatar.cc/32?u=_sleepy_123';
+  const currentUsername = currentUser?.username || 'fat_cat';
+  const myAvatar = CAT_AVATAR_URL;
 
   // Fetch comments from server on first open
   useEffect(() => {
